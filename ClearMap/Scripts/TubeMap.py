@@ -20,7 +20,7 @@ References
 __author__    = 'Christoph Kirst <christoph.kirst.ck@gmail.com>'
 __license__   = 'GPLv3 - GNU General Pulic License v3 (see LICENSE.txt)'
 __copyright__ = 'Copyright © 2020 by Christoph Kirst'
-__webpage__   = 'http://idisco.info'
+__webpage__   = 'http://idisco.layoutinfo'
 __download__  = 'http://www.github.com/ChristophKirst/ClearMap2'
 
 if __name__ == '__main__':
@@ -31,19 +31,26 @@ if __name__ == '__main__':
   
   #%% Initialize workspace
   
-  from ClearMap.Environment import *  #analysis:ignore
-  
   #directories and files
-  directory = '/home/ckirst/Programs/ClearMap2/ClearMap/Tests/Data/TubeMap_Example'    
+  import sys
+  sys.path.append('/media/Data/clearmap/ClearMap2')
+  from ClearMap.Environment import *  #analysis:ignore
+  directory = '/media/Data/clearmap/ClearMap2/ClearMap/Tests/Data/TubeMap_Example'    
   
-  expression_raw      = 'Raw/20-54-41_acta2_555-podo_cd31l_647_UltraII[<Y,2> x <X,2>]_C00_UltraII Filter0001.ome.npy'          
-  expression_arteries = 'Raw/20-54-41_acta2_555-podo_cd31l_647_UltraII[<Y,2> x <X,2>]_C00_UltraII Filter0000.ome.npy'       
-  expression_auto     = 'Autofluorescence/19-44-05_auto_UltraII_C00_xyz-Table Z<Z,4>.ome.tif'  
+  expression_raw      = 'Raw/14-16-41_tricocktail_UltraII[<Y,2> x <X,2>]_C00_UltraII Filter0001.ome.npy'         
+  expression_arteries = 'Raw/14-16-41_tricocktail_UltraII[<Y,2> x <X,2>]_C00_UltraII Filter0000.ome.npy'       
+  expression_auto     = 'Autofluorescence/14-02-13_auto_UltraII_C00_xyz-Table Z<Z,4>.ome.tif'    
+  #TP: to create a eference to test one stack at a time
+  expression_stack = 'Raw/14-16-41_tricocktail_UltraII[04 x 10]_C00_UltraII Filter0001.ome.npy'
+
   
   resources_directory = settings.resources_path
   
   ws = wsp.Workspace('TubeMap', directory=directory);
   ws.update(raw=expression_raw, arteries=expression_arteries, autofluorescence=expression_auto)
+  #TP: to tdst a stack
+  ws.update(stack=expression_stack)
+  
   ws.info()
   
   
@@ -69,12 +76,43 @@ if __name__ == '__main__':
   io.convert_files(ws.file_list('raw', extension='tif'), extension='npy', 
                    processes=12, verbose=True);
   
+  # Convert my stack
+  io.convert_files(ws.file_list('stack', extension='tif'), extension='npy', 
+                   processes=12, verbose=True);
+  #%%
+  filename = ws.file_list('raw')[0]
+  p3d.plot(filename)
+  
   #%% Convert artery data to npy files      
              
   io.convert_files(ws.file_list('arteries', extension='tif'), extension='npy', 
                    processes=12, verbose=True);                 
-                   
   
+  #TP: to visualize the npy file we just converted (single file) we assigned as "expression_stack"
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+# Load your 3D data from the npy file
+expression_stack_plot = np.load(expression_stack)
+
+# Create a figure
+fig = plt.figure()
+
+# Create a 3D axis for plotting
+ax = fig.add_subplot(111, projection='3d')
+
+# Plot the 3D data
+ax.voxels(expression_stack_plot, edgecolor="k")
+
+# Customize the plot as needed
+ax.set_xlabel('X')
+ax.set_ylabel('Y')
+ax.set_zlabel('Z')
+ax.view_init(elev=20, azim=45)
+
+# Display the 3D plot
+plt.show()
   #%%############################################################################
   ### Stitching
   ###############################################################################
@@ -122,7 +160,8 @@ if __name__ == '__main__':
   
   layout = st.load_layout(ws.filename('layout', postfix='placed'));
   
-  stw.stitch_layout(layout, sink = ws.filename('stitched'), method = 'interpolation', processes='!serial', verbose=True)
+  stw.stitch_layout(layout, sink = ws.filename('stitched'), method = 'interpolation
+ ', processes='!serial', verbose=True)
   
   #p3d.plot(ws.filename('stitched')) 
   
@@ -148,7 +187,9 @@ if __name__ == '__main__':
       "processes" : None,
       "verbose" : True,             
       };
+ 
   
+ 
   io.delete_file(ws.filename('resampled'));
   
   res.resample(ws.filename('stitched'), sink=ws.filename('resampled'), **resample_parameter)
@@ -180,6 +221,7 @@ if __name__ == '__main__':
       "affine_parameter_file"  : align_channels_affine_file,
       "bspline_parameter_file" : None,
       
+ 
       #directory of the alig'/home/nicolas.renier/Documents/ClearMap_Ressources/Par0000affine.txt',nment result
       "result_directory" :  ws.filename('resampled_to_auto')
       }; 
@@ -212,6 +254,7 @@ if __name__ == '__main__':
   
   #select sublice for testing the pipeline
   slicing = (slice(None),slice(0,1000),slice(900,1500));
+ 
   ws.create_debug('stitched', slicing=slicing);
   ws.create_debug('stitched', postfix='arteries', slicing=slicing);
   ws.debug = True; 
@@ -219,7 +262,8 @@ if __name__ == '__main__':
   #p3d.plot(ws.filename('stitched'))
     
   
-  #%%############################################################################
+  #%%#################################################
+ ###########################
   ### Binarization
   ###############################################################################
   
@@ -254,7 +298,7 @@ if __name__ == '__main__':
   vasc.postprocess(source, sink, 
                    postprocessing_parameter=postprocessing_parameter, 
                    processing_parameter=postprocessing_processing_parameter, 
-                   processes=None, verbose=True)
+                   processes=None, verbose=Truefilename()
   
   #p3d.plot([[source, sink]])
   
@@ -293,7 +337,7 @@ if __name__ == '__main__':
                    processes=None, verbose=True)
   
   #p3d.plot([source, sink])
-  
+  filename(
   
   #%%############################################################################
   ### Vessel filling 
@@ -333,7 +377,7 @@ if __name__ == '__main__':
   #%% Combine binaries
   
   source          = ws.filename('binary', postfix='filled');
-  source_arteries = ws.filename('binary', postfix='arteries_filled');
+  source_arteries = ws.filename('binary', postfifilename(x='arteries_filled');
   sink            = ws.filename('binary', postfix='final');
   
   bp.process(np.logical_or, [source, source_arteries], sink, size_max=500, overlap=0, processes=None, verbose=True)
