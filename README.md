@@ -1,3 +1,19 @@
+**Tetiana's Notes**
+
+Tubemap Pipeline
+The scope of the project for the NRSC510A is to run the Tubemap pipeline with the tutorial data from the original manuscript deposited at the OSF. It contains raw 3D scans and autofluorescence data from two C57Bl6 mice hemispheres. Vessels were immunolabeled against podocalyxin, cluster of differentiation 31, and actin alpha 2. Our main goal, which is outside of the scope of this course, is to use the Tubemap pipeline on own lightsheet data.
+
+*Tutorial Data*
+Tutorial data is provided by Kirst et al. in the original manuscript and was downloaded from their their OSF page. The data includes raw 3D scans and autofluorescence data from two C57Bl6 mice hemispheres, but we only downloaded one (44R). Vessels were immunolabelled against podocalyxin, cluster of differentiation 31, and actin alpha 2.
+
+*Programming language and Packages*
+The pipeline has been written in Python. We used Python 3.9 to run the pipeline. All dependencies and packages are listed in the ylm file we used to create the environment.
+
+*Cropping test data*
+Unfortunately, while using one hemisphere we ran into problems in the Wobbly Alignment step. Instead, We ran the pipeline on four stacks and further crop the data after stitching. Details are available in our Tubemap.ipynb notebook. 
+
+
+Original README file from Kirst et al. 
 ClearMap 2.1
 ============
 
